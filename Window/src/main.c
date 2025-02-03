@@ -45,9 +45,9 @@ int main(bool resetType)
     uint16_t vramBG = VRAM;
     VRAM += VDP_loadTileSet(&imgBG, VRAM, DMA);
 
-    for(int x = 0; x < 64; ++x)
+    for(uint8_t x = 0; x < 64; ++x)
     {
-        for(int y = 0; y < 32; ++y)
+        for(uint8_t y = 0; y < 32; ++y)
         {
             // slow... but fine for a demo
             VDP_fillTileMapRect(BG_B, TILE_ATTR_FULL(PAL0, false, y & 1, x & 1, vramBG), x, y, 1, 1);
@@ -62,9 +62,9 @@ int main(bool resetType)
         VDP_drawImageEx(WINDOW, &imgTextbox, TILE_ATTR_FULL(PAL2, true, false, false, VRAM), 0, i, false, true);
     VRAM += imgTextbox.tileset->numTile;
     
-    // Finalt setup
+    // Final setup
     DMA_waitCompletion();
-    SPR_initEx(TILE_FONT_INDEX - VRAM); // cool sgdk trick - maximise sprite memory
+    SPR_initEx(TILE_FONT_INDEX - VRAM); // cool sgdk trick - fully count background tiles and call like this maximise sprite memory
 
     // Setup interrupts
     SYS_setHIntCallback(Window_HINT);   VDP_setHInterrupt(true);    VDP_setHIntCounter(0);  
