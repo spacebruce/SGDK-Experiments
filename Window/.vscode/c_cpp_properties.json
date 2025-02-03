@@ -1,0 +1,30 @@
+{
+    "configurations": [
+        {
+            "name": "MARSDEV/SGDK",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "~/tools/marsdev/sgdk/SGDK/inc/**",
+                "~/Tools/marsdev/sgdk/SGDK/inc",
+                "~/git/marsdev/sgdk/SGDK/inc/**",
+                "~/git/marsdev/sgdk/SGDK/inc/"
+            ],
+            "defines": [],
+            "cStandard": "c17",
+            "cppStandard": "gnu++17",
+            "compilerPathInCppPropertiesJson": "/home/user/tools/marsdev/m68k-elf/lib/gcc/",
+            "mergeConfigurations": false,
+            "browse": {
+                "path": [
+                    "${workspaceFolder}/**",
+                    "~/tools/marsdev/sgdk/SGDK/inc/**",
+                    "~/Tools/marsdev/sgdk/SGDK/inc",
+                    "~/git/marsdev/sgdk/SGDK/inc/**",
+                    "~/git/marsdev/sgdk/SGDK/inc/"
+                ],
+                "limitSymbolsToIncludedHeaders": false
+            }
+        }
+    ],
+    "version": 4
+}

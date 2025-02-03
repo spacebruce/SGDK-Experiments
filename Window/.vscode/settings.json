@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "*.njk": "html",
+        "genesis.h": "c"
+    }
+}
