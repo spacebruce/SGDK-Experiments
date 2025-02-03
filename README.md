@@ -1,5 +1,6 @@
-# Secretive SGDK tricks/idea dump archive
+Secretive SGDK tricks/idea dump archive
 
-I'm using the [[https://github.com/andwn/marsdev]] toolchain on linux, not sure how to compile on windows, pull requests to fix this are welcome. 
+I'm using the [Marsdev](https://github.com/andwn/marsdev) toolchain on linux, not sure how to compile on windows, pull requests to fix this are welcome. 
 
-1 subfolder per project
+Current contents
+- [Moving the WINDOW plane vertically with an interrupt](Window/README)
