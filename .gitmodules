@@ -1,0 +1,3 @@
+[submodule "SGDK-Sloped-Tiles"]
+	path = SGDK-Sloped-Tiles
+	url = https://github.com/spacebruce/SGDK-Sloped-Tiles
