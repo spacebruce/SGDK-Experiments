@@ -4,7 +4,7 @@ I'm using the [Marsdev](https://github.com/andwn/marsdev) toolchain on linux, no
 
 Current contents
 - [Moving the WINDOW plane vertically with an interrupt](Window/)
-- [Shaped and sloped tilemap collision checking](/SGDK-Sloped-Tiles/)
+- [Shaped and sloped tilemap collision checking](https://github.com/spacebruce/SGDK-Sloped-Tiles) (Seperate repo)
 
 # Software Licence
 Take, steal, pilfer, enjoy, propagate.  
