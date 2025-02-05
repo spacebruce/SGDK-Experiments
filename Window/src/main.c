@@ -7,25 +7,56 @@ vu16 TEXTBOX_Y = 0;
 vs8 TEXTBOX_VY = 1;
 vu8 TextboxIntStep;
 
-HINTERRUPT_CALLBACK Window_HINT()
+HINTERRUPT_CALLBACK Window_HINT_TOP()
 {
-    if(TextboxIntStep == 0)
-    {   
-        TextboxIntStep = 1;                   
-        VDP_setHIntCounter(TEXTBOX_Y * 8);    // Wait for start of textbox. 
-    }
-    else
+
+    if(TextboxIntStep == 1)
     {
         VDP_setWindowOnTop(TEXTBOX_Y + TEXTBOX_H);     // Turn on an 8 tile high textbox right here
         VDP_setHInterrupt(false);                      // Turn off HINT and let nature take it's course
     }
+    ++TextboxIntStep;    
 }
+
+HINTERRUPT_CALLBACK Window_HINT_LOW()
+{
+    if(TextboxIntStep == 0)
+    {     
+        VDP_setWindowOnTop(TEXTBOX_Y + TEXTBOX_H);             
+    }
+    ++TextboxIntStep;    
+}
+
 void Window_VINT()
 {
     TextboxIntStep = 0;
-    VDP_setWindowOff();
+
     VDP_setHIntCounter(0);
     VDP_setHInterrupt(true);    
+
+    if(TEXTBOX_Y == 0)  // Pinned to top
+    {
+        VDP_setHInterrupt(false);
+        VDP_setWindowOnTop(TEXTBOX_H);
+    }
+    else if(TEXTBOX_Y == 28)    // Pinned to bottom
+    {
+        VDP_setHInterrupt(false);
+        VDP_setWindowOnBottom(28 - TEXTBOX_H);
+    }
+    else if(TEXTBOX_Y < 14)     // top half of screen
+    {
+        SYS_setHIntCallback(Window_HINT_TOP);
+        VDP_setHIntCounter(TEXTBOX_Y * 8);
+        VDP_setWindowOff();
+        //VDP_setWindowOnBottom(28 - (TEXTBOX_Y + TEXTBOX_H));
+    }
+    else    // bottom half of screen
+    {
+        SYS_setHIntCallback(Window_HINT_LOW);
+        VDP_setHIntCounter((TEXTBOX_Y + TEXTBOX_H) * 8);  
+        VDP_setWindowOnBottom(28 - TEXTBOX_Y);   
+    }
 }
 
 // 
@@ -67,7 +98,7 @@ int main(bool resetType)
     SPR_initEx(TILE_FONT_INDEX - VRAM); // cool sgdk trick - fully count background tiles and call like this maximise sprite memory
 
     // Setup interrupts
-    SYS_setHIntCallback(Window_HINT);   VDP_setHInterrupt(true);    VDP_setHIntCounter(0);  
+    SYS_setHIntCallback(NULL);          VDP_setHInterrupt(true);    VDP_setHIntCounter(0);  
     SYS_setVIntCallback(Window_VINT);   VDP_setVInterrupt(true);
     
     int i = 0;
