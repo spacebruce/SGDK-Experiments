@@ -1,0 +1,11 @@
+{
+    "files.associations": {
+        "resources.h": "c",
+        "genesis.h": "c",
+        "config.h": "c",
+        "array": "c",
+        "string_view": "c",
+        "initializer_list": "c",
+        "maphandler.h": "c"
+    }
+}
