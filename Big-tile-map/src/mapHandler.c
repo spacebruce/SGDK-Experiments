@@ -3,7 +3,7 @@
 
 #define MAX_TILES 127   // VRAM capacity
 #define TOTAL_TILES 2048  
-#define SCREEN_TILES_W 64
+#define SCREEN_TILES_W 42
 #define SCREEN_TILES_H 32
 
 typedef struct
@@ -14,6 +14,7 @@ typedef struct
 } TileMatch_t;
 
 uint16_t bump = 0;
+uint16_t lowestFree = 0;
 TileMatch_t tileCache[MAX_TILES]; 
 uint16_t planeCache[SCREEN_TILES_W][SCREEN_TILES_H];
 
@@ -21,22 +22,15 @@ uint16_t tileVram;
 
 uint16_t initTileCache(uint16_t vram)
 {
-    //
+    // Invalidate everything
     for (int i = 0; i < MAX_TILES; i++)
     {
         tileCache[i].mapTile = 0xFFFF;
         tileCache[i].planeTile = 0xFFFF;
         tileCache[i].count = 0;
     }
-    //
-    for (uint8_t x = 0; x < SCREEN_TILES_W; ++x)
-    {
-        for(uint8_t y = 0; y< SCREEN_TILES_H; ++y)  
-        {
-            planeCache[x][y] = 0xFFFF;
-        }
-    }
-    //
+    memset(planeCache, 0xFF, (SCREEN_TILES_H * SCREEN_TILES_W) * 2);
+    // allocator
     tileVram = vram;
     return vram += MAX_TILES;
 }
@@ -59,22 +53,27 @@ uint16_t fetchTile(uint16_t mapTile)
         tileCache[vramSlot].mapTile = mapTile;
         tileCache[vramSlot].planeTile = vramSlot;
         tileCache[vramSlot].count = 1;
-        DMA_transfer(CPU, DMA_VRAM, &tsBigMap.tiles[mapTile * 8], (tileVram + vramSlot) * 32, 16, 2);
+        DMA_transfer(DMA, DMA_VRAM, &tsBigMap.tiles[mapTile * 8], (tileVram + vramSlot) * 32, 16, 2);
         return vramSlot;
     }
 
-    // Look for a free slot only if bump is full
-    for (int i = 0; i < MAX_TILES; i++) {
+    // Find free slot
+    for (int i = lowestFree; i < MAX_TILES; i++)
+    {
         if (tileCache[i].count == 0)
         {
             tileCache[i].mapTile = mapTile;
             tileCache[i].planeTile = i;
             tileCache[i].count = 1;
             DMA_transfer(DMA, DMA_VRAM, &tsBigMap.tiles[mapTile * 8], (tileVram + i) * 32, 16, 2);
+            //
+            ++lowestFree;
+            // 
             return i;
         }
     }
 
+    kprintf("out of tile memory!!");
     return 0xFFFF; // No available slot
 }
 
@@ -88,10 +87,15 @@ void releaseTile(uint16_t planeTile)
             {
                 tileCache[i].count--;
             }
+            // Mark for eviction if not used anymore
             if (tileCache[i].count == 0)
             {
                 tileCache[i].mapTile = 0xFFFF;
                 tileCache[i].planeTile = 0xFFFF;
+                if (i < lowestFree)
+                {
+                    lowestFree = i;
+                }
             }
             return;
         }
@@ -113,19 +117,21 @@ void MapCB(Map *map, u16 *buf, u16 x, u16 y, MapUpdateType updateType, u16 size)
 
         uint16_t oldTile = planeCache[xt][yt];
 
-        // If plane slot was previously occupied:
-        if (oldTile != 0xFFFF)
+        //if(oldTile != tileIndex)
         {
-            releaseTile(oldTile);           // Deplete it's counter
-            planeCache[xt][yt] = 0xFFFF;    // Mark as not used so fetch doesn't use it
+            // If plane slot was previously occupied:
+            if (oldTile != 0xFFFF)
+            {
+                releaseTile(oldTile);           // Deplete it's counter
+                planeCache[xt][yt] = 0xFFFF;    // Mark as not used so fetch doesn't use it
+            }
+            tileIndex = fetchTile(tileIndex);
+            planeCache[xt][yt] = tileIndex;
         }
 
-        uint16_t vramSlot = fetchTile(tileIndex);
-        planeCache[xt][yt] = vramSlot;
-
-        if (vramSlot != 0xFFFF)
+        if (tileIndex != 0xFFFF) 
         {
-            *dst = (tileData & ~TILE_INDEX_MASK) | (tileVram + vramSlot);
+            *dst = (tileData & ~TILE_INDEX_MASK) | (tileVram + tileIndex);
         }
         else
         {
