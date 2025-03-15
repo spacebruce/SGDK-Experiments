@@ -31,8 +31,8 @@ int main(bool resetType)
 
     bigmap = MAP_create(&mBigMap, BG_B, 0);
 
-    //DMA_transfer(DMA, DMA_VRAM, tsBigMap.tiles, 0, 512 * 16, 2);
-    initTileCache();
+    uint16_t vram = 1;
+    vram = initTileCache(vram);
     MAP_setDataPatchCallback(bigmap, MapCB);
 
     SPR_init();
@@ -46,7 +46,7 @@ int main(bool resetType)
     {      
         cameraX += cameraVX;
         cameraY += cameraVY;
-        cameraX = clamp(cameraX, 0, 2048 - 320);
+        cameraX = clamp(cameraX, 0, 1024 - 320);
         cameraY = clamp(cameraY, 0, 1024 - 224);
 
         MAP_scrollTo(bigmap, cameraX,cameraY);
@@ -57,7 +57,6 @@ int main(bool resetType)
         {
             cameraTX = cameraTTX;
             cameraTY = cameraTTY;
-            //updateVisibleTiles(&tmBigMap, cameraTX, cameraTY);
         }
 
         SPR_update();
