@@ -72,8 +72,6 @@ int main(bool resetType)
     PAL_setColors(0, pBigMap.data, 48, DMA);
 
     //shakeMap();
-    
-    uint16_t cameraTX, cameraTY;
     while(1)
     {      
         cameraX += cameraVX;
@@ -83,14 +81,6 @@ int main(bool resetType)
 
         MAP_scrollTo(bigmap, cameraX,cameraY);
         
-        uint16_t cameraTTX = cameraX / 8;
-        uint16_t cameraTTY = cameraY / 8;
-        if(cameraTX != cameraTTX || cameraTTY != cameraTY)
-        {
-            cameraTX = cameraTTX;
-            cameraTY = cameraTTY;
-        }
-
         SPR_update();
         SYS_doVBlankProcess();        
     }
