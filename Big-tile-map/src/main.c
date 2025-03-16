@@ -63,7 +63,7 @@ int main(bool resetType)
     uint16_t vram = 1;
 
     bigmap = MAP_create(&mBigMap, BG_B, 0);
-    vram = tileCache_init(vram, &tsBigMap, 64 * 5);
+    vram = tileCache_init(vram, &tsBigMap, (64 * 5) - 1);
     MAP_setDataPatchCallback(bigmap, tileCache_callback);
 
     SPR_init();

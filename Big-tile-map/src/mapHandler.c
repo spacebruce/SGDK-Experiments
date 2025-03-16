@@ -1,5 +1,6 @@
 #include "mapHandler.h"
 #include <resources.h>
+#include <kdebug.h>
 
 #define SCREEN_TILES_W 42
 #define SCREEN_TILES_H 32
@@ -33,6 +34,8 @@ uint16_t tileCache_init(uint16_t vram, const TileSet* ts, uint16_t maxTiles)
     TOTAL_TILES = tileSet->numTile;
 
     MaxTilesEver = 0;
+
+    kprintf("Alloc %d + %d : %d bytes", ACTIVE_TILES, TOTAL_TILES, (ACTIVE_TILES + TOTAL_TILES));
     
     // Allocate handler memory
     uint16_t MaxTileMemory = ACTIVE_TILES * sizeof(TileMatch_t);
@@ -71,6 +74,7 @@ void tileCache_free()
     free(mapTileToPlaneTile);
 }
 
+static int allocFrame = 0;
 uint16_t tileCache_fetchTile(uint16_t mapTile)
 {
     if (mapTile >= TOTAL_TILES) return 0xFFFF;
@@ -83,14 +87,10 @@ uint16_t tileCache_fetchTile(uint16_t mapTile)
         return planeTile;
     }
 
-    // Use bump allocator when starting out
+    // Starting out, use bump allocator
     if (bump < ACTIVE_TILES)
     {
         planeTile = bump++;
-    }
-    else if (highestFree < ACTIVE_TILES - 1)
-    {
-        planeTile = ++highestFree;
     }
     else 
     {
@@ -110,21 +110,22 @@ uint16_t tileCache_fetchTile(uint16_t mapTile)
         }
     }
 
-    // 
     if (planeTile == 0xFFFF) 
     {
         kprintf("out of tile memory!!");
         return 0xFFFF;
     }
 
-    // Transfer tile to VRAM
-    mapTileToPlaneTile[mapTile] = planeTile;
-    tileCache[planeTile].mapTile = mapTile;
-    tileCache[planeTile].planeTile = planeTile;
+    // Init tile in cache
+    mapTileToPlaneTile[mapTile] = planeTile;        // Here
+    tileCache[planeTile].mapTile = mapTile;         // Here
+    tileCache[planeTile].planeTile = planeTile;     // and Here
     tileCache[planeTile].count = 1;
     
     DMA_transfer(DMA, DMA_VRAM, &tileSet->tiles[mapTile * 8], (tileVram + planeTile) * 32, 16, 2);
     
+    ++allocFrame;
+
     return planeTile;
 }
 
@@ -193,25 +194,28 @@ void tileCache_print()
 
 void tileCache_callback(Map *map, u16 *buf, u16 x, u16 y, MapUpdateType updateType, u16 size)
 {
+    //allocFrame = 0;
+    //KDebug_StartTimer();
     u16* dst = buf;
     u16 i = size;
+
+    uint16_t xt = x % SCREEN_TILES_W;
+    uint16_t yt = y % SCREEN_TILES_H;
 
     while(i--)
     {
         u16 tileData = *dst;
         uint16_t tileIndex = tileData & TILE_INDEX_MASK;
 
-        uint16_t xt = x % SCREEN_TILES_W;
-        uint16_t yt = y % SCREEN_TILES_H;
 
         uint16_t oldTile = planeCache[xt][yt];
 
-        //if(oldTile != tileIndex)  // Causes bugs 
+        //if(oldTile != tileIndex) // Buggy for some reason...
         {
             // If plane slot was previously occupied:
             if (oldTile != 0xFFFF)
             {
-                tileCache_releaseTile(oldTile);           // Deplete its counter
+                tileCache_releaseTile(oldTile); // Deplete its counter
                 planeCache[xt][yt] = 0xFFFF;    // Mark as not used so fetch doesn't use it
             }
             tileIndex = tileCache_fetchTile(tileIndex);
@@ -228,11 +232,21 @@ void tileCache_callback(Map *map, u16 *buf, u16 x, u16 y, MapUpdateType updateTy
         }
 
         if (updateType == ROW_UPDATE) 
-            x++;
+        {
+            ++xt;
+            if(xt >= SCREEN_TILES_W)
+                xt = 0;
+        }
         else
-            y++;
+        {
+            ++yt;
+            if(yt >= SCREEN_TILES_H)
+                yt = 0;
+        }
         dst++;
     }
+    //KDebug_StopTimer();
+    //kprintf("Tiles DMA'd : %d", allocFrame);
 }
 
 uint16_t tileCache_getUsage()
