@@ -2,6 +2,10 @@
 
 #include <genesis.h>
 
-uint16_t initTileCache(uint16_t vram);
-void updateVisibleTiles(TileMap *map, u16 x, u16 y);
-void MapCB(Map *map, u16 *buf, u16 x, u16 y, MapUpdateType updateType, u16 size);
+uint16_t tileCache_init(uint16_t vram, TileSet* ts, uint16_t maxTiles);
+void tileCache_free();
+void tileCache_callback(Map *map, u16 *buf, u16 x, u16 y, MapUpdateType updateType, u16 size);
+
+//Debug
+void printTileCacheUsage();
+uint16_t getTilesMaxUsage();

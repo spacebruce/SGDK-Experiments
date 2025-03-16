@@ -1,8 +1,6 @@
 #include "mapHandler.h"
 #include <resources.h>
 
-#define MAX_TILES 303   // VRAM capacity
-#define TOTAL_TILES 2048  
 #define SCREEN_TILES_W 42
 #define SCREEN_TILES_H 32
 
@@ -15,15 +13,42 @@ typedef struct
 
 uint16_t bump = 0;
 uint16_t lowestFree = 0;
-TileMatch_t tileCache[MAX_TILES]; 
+uint16_t highestFree = 0;
+uint16_t MAX_TILES;
+uint16_t TOTAL_TILES;
+uint16_t MaxTilesEver;
+
+TileMatch_t* tileCache; 
 uint16_t planeCache[SCREEN_TILES_W][SCREEN_TILES_H];
-uint16_t mapTileToPlaneTile[TOTAL_TILES]; // Lookup table for fast access
-
+uint16_t* mapTileToPlaneTile; // Lookup table for fast access
 uint16_t tileVram;
+TileSet* tileSet;
+Map* tileMap;
 
-uint16_t initTileCache(uint16_t vram)
+uint16_t tileCache_init(uint16_t vram, TileSet* ts, uint16_t maxTiles)
 {
     tileVram = vram;
+    MAX_TILES = maxTiles;
+    tileSet = ts;
+    
+    TOTAL_TILES = tileSet->numTile;
+
+    MaxTilesEver = 0;
+    
+    // Allocate handler memory
+    uint16_t MaxTileMemory = MAX_TILES * sizeof(TileMatch_t);
+    uint16_t TotalTileMemory = TOTAL_TILES * sizeof(uint16_t);
+    tileCache = (TileMatch_t*)malloc(MaxTileMemory);
+    mapTileToPlaneTile = (uint16_t*)malloc(TotalTileMemory);
+    
+    if (!tileCache || !mapTileToPlaneTile) 
+    {
+        kprintf("Memory allocation failed!");
+        return 0xFFFF;
+    }
+
+    kprintf("Memory used : %d", TotalTileMemory + MaxTileMemory);
+
     // Invalidate everything
     for (int16_t i = 0; i < MAX_TILES; i++)
     {
@@ -32,15 +57,16 @@ uint16_t initTileCache(uint16_t vram)
         tileCache[i].count = 0;
     }
     memset(planeCache, 0xFF, (SCREEN_TILES_H * SCREEN_TILES_W) * 2);    
-    memset(mapTileToPlaneTile, 0xFF, sizeof(mapTileToPlaneTile));      
-     
-
     // allocator
+    memset(mapTileToPlaneTile, 0xFF, TOTAL_TILES * sizeof(uint16_t));      
+    
     return (vram + MAX_TILES);
 }
 
 uint16_t fetchTile(uint16_t mapTile)
 {
+    if (mapTile >= TOTAL_TILES) return 0xFFFF;
+
     uint16_t planeTile = mapTileToPlaneTile[mapTile];
     
     if (planeTile != 0xFFFF) // Already allocated
@@ -80,7 +106,7 @@ uint16_t fetchTile(uint16_t mapTile)
     tileCache[planeTile].planeTile = planeTile;
     tileCache[planeTile].count = 1;
     
-    DMA_transfer(DMA, DMA_VRAM, &tsBigMap.tiles[mapTile * 8], (tileVram + planeTile) * 32, 16, 2);
+    DMA_transfer(DMA, DMA_VRAM, &tileSet->tiles[mapTile * 8], (tileVram + planeTile) * 32, 16, 2);
     
     return planeTile;
 }
@@ -111,7 +137,38 @@ void releaseTile(uint16_t planeTile)
     }
 }
 
-void MapCB(Map *map, u16 *buf, u16 x, u16 y, MapUpdateType updateType, u16 size)
+void tileCache_free()
+{
+    free(tileCache);
+    free(mapTileToPlaneTile);
+}
+
+
+void printTileCacheUsage()
+{
+    uint16_t usedTiles = 0;
+    for (int i = 0; i < MAX_TILES; i++)
+    {
+        if (tileCache[i].count > 0)
+        {
+            usedTiles++;
+        }
+    }
+
+    if(usedTiles > MaxTilesEver)
+    {
+        MaxTilesEver = usedTiles;
+        kprintf("new max : %d", MaxTilesEver);
+    }
+
+    char text[64];
+    sprintf(text, "%04d/%04d", usedTiles, MAX_TILES);
+    VDP_drawText(text, 0,0);
+    //sprintf(text, "Max : %d", MaxTilesEver);
+    //VDP_drawText(text, 0,1);
+}
+
+void tileCache_callback(Map *map, u16 *buf, u16 x, u16 y, MapUpdateType updateType, u16 size)
 {
     u16* dst = buf;
     u16 i = size;
@@ -153,4 +210,9 @@ void MapCB(Map *map, u16 *buf, u16 x, u16 y, MapUpdateType updateType, u16 size)
             y++;
         dst++;
     }
+}
+
+uint16_t getTilesMaxUsage()
+{
+    return MaxTilesEver;
 }
