@@ -19,11 +19,11 @@ uint16_t shakeMap()
             MAP_scrollTo(bigmap, x, y);
             SYS_doVBlankProcess(); 
             
-            uint16_t tilesUsed = getTilesMaxUsage();
+            uint16_t tilesUsed = tileCache_getUsage();
             if (tilesUsed > maxTiles)
                 maxTiles = tilesUsed;
 
-            printTileCacheUsage();
+            tileCache_print();
             char text[32];
             sprintf(text, "max : %d", maxTiles);
             VDP_drawText(text, 0,1);
@@ -60,11 +60,10 @@ int main(bool resetType)
 
     JOY_setEventHandler(gameJoystickHandler);
 
-    bigmap = MAP_create(&mBigMap, BG_B, 0);
-
     uint16_t vram = 1;
-    vram = tileCache_init(vram, &tsBigMap, 64 * 5);
 
+    bigmap = MAP_create(&mBigMap, BG_B, 0);
+    vram = tileCache_init(vram, &tsBigMap, 64 * 5);
     MAP_setDataPatchCallback(bigmap, tileCache_callback);
 
     SPR_init();
@@ -72,6 +71,7 @@ int main(bool resetType)
     PAL_setColors(0, pBigMap.data, 48, DMA);
 
     //shakeMap();
+    uint16_t debugFrames = 10;
     while(1)
     {      
         cameraX += cameraVX;
@@ -82,6 +82,14 @@ int main(bool resetType)
         MAP_scrollTo(bigmap, cameraX,cameraY);
         
         SPR_update();
+
+        --debugFrames;
+        if(debugFrames == 0)
+        {
+            tileCache_print();
+            debugFrames = 10;
+        }
+
         SYS_doVBlankProcess();        
     }
 }

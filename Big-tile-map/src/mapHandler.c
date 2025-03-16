@@ -62,7 +62,13 @@ uint16_t tileCache_init(uint16_t vram, const TileSet* ts, uint16_t maxTiles)
     return (vram + ACTIVE_TILES);
 }
 
-uint16_t fetchTile(uint16_t mapTile)
+void tileCache_free()
+{
+    free(tileCache);
+    free(mapTileToPlaneTile);
+}
+
+uint16_t tileCache_fetchTile(uint16_t mapTile)
 {
     if (mapTile >= TOTAL_TILES) return 0xFFFF;
 
@@ -110,7 +116,7 @@ uint16_t fetchTile(uint16_t mapTile)
     return planeTile;
 }
 
-void releaseTile(uint16_t planeTile)
+void tileCache_releaseTile(uint16_t planeTile)
 {
     if (planeTile == 0xFFFF) return; 
 
@@ -136,14 +142,7 @@ void releaseTile(uint16_t planeTile)
     }
 }
 
-void tileCache_free()
-{
-    free(tileCache);
-    free(mapTileToPlaneTile);
-}
-
-
-void printTileCacheUsage()
+void tileCache_print()
 {
     uint16_t usedTiles = 0;
     for (int i = 0; i < ACTIVE_TILES; i++)
@@ -157,11 +156,10 @@ void printTileCacheUsage()
     if(usedTiles > MaxTilesEver)
     {
         MaxTilesEver = usedTiles;
-        kprintf("new max : %d", MaxTilesEver);
     }
 
     char text[64];
-    sprintf(text, "%04d/%04d", usedTiles, ACTIVE_TILES);
+    sprintf(text, "%04d/%04d (%04d)", usedTiles, ACTIVE_TILES, MaxTilesEver);
     VDP_drawText(text, 0,0);
     //sprintf(text, "Max : %d", MaxTilesEver);
     //VDP_drawText(text, 0,1);
@@ -187,10 +185,10 @@ void tileCache_callback(Map *map, u16 *buf, u16 x, u16 y, MapUpdateType updateTy
             // If plane slot was previously occupied:
             if (oldTile != 0xFFFF)
             {
-                releaseTile(oldTile);           // Deplete its counter
+                tileCache_releaseTile(oldTile);           // Deplete its counter
                 planeCache[xt][yt] = 0xFFFF;    // Mark as not used so fetch doesn't use it
             }
-            tileIndex = fetchTile(tileIndex);
+            tileIndex = tileCache_fetchTile(tileIndex);
             planeCache[xt][yt] = tileIndex;
         }
 
@@ -211,7 +209,7 @@ void tileCache_callback(Map *map, u16 *buf, u16 x, u16 y, MapUpdateType updateTy
     }
 }
 
-uint16_t getTilesMaxUsage()
+uint16_t tileCache_getUsage()
 {
     return MaxTilesEver;
 }
