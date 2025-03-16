@@ -7,7 +7,7 @@ Experiments get a ⭐ if I think they're actually useful
 
 - [Moving the WINDOW plane vertically with an interrupt](Window/)
 - [Shaped and sloped tilemap collision checking](https://github.com/spacebruce/SGDK-Sloped-Tiles) ⭐ (Stored in a seperate repository)
-- [Virtual vram tile cache](Big-tile-map/) ⭐ 
+- [Big virtual scrolling tilemap / Virtual VRAM tile cache](Big-tile-map/) ⭐ 
 
 ## Software Licence
 Take, steal, pilfer, enjoy, propagate.  
