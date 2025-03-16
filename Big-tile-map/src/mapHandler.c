@@ -59,6 +59,9 @@ uint16_t tileCache_init(uint16_t vram, const TileSet* ts, uint16_t maxTiles)
     memset(planeCache, 0xFF, (SCREEN_TILES_H * SCREEN_TILES_W) * 2);    
     memset(mapTileToPlaneTile, 0xFF, TOTAL_TILES * sizeof(uint16_t));      
     
+    lowestFree = 0;
+    highestFree = ACTIVE_TILES - 1;
+    
     return (vram + ACTIVE_TILES);
 }
 
@@ -85,7 +88,11 @@ uint16_t tileCache_fetchTile(uint16_t mapTile)
     {
         planeTile = bump++;
     }
-    else // Find free slot
+    else if (highestFree < ACTIVE_TILES - 1)
+    {
+        planeTile = ++highestFree;
+    }
+    else 
     {
         for (int i = lowestFree; i < ACTIVE_TILES; i++)
         {
@@ -93,6 +100,11 @@ uint16_t tileCache_fetchTile(uint16_t mapTile)
             {
                 planeTile = i;
                 lowestFree = i + 1;
+                if (planeTile == highestFree)
+                {
+                    while (highestFree > 0 && tileCache[highestFree].count > 0)
+                        highestFree--;
+                }
                 break;
             }
         }
@@ -139,6 +151,20 @@ void tileCache_releaseTile(uint16_t planeTile)
         {
             lowestFree = planeTile;
         }
+        
+        if (planeTile > highestFree)
+        {
+            highestFree = planeTile;
+        }
+
+        if (planeTile + 1 == bump)
+        {
+            bump--;
+        }
+
+        // DMA transfer blank tile to clear freed space
+        uint16_t blankTile[16] = {0};
+        DMA_transfer(DMA, DMA_VRAM, blankTile, (tileVram + planeTile) * 32, 16, 2);
     }
 }
 
