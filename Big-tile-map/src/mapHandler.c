@@ -162,9 +162,9 @@ void tileCache_releaseTile(uint16_t planeTile)
             bump--;
         }
 
-        // DMA transfer blank tile to clear freed space
-        uint16_t blankTile[16] = {0};
-        DMA_transfer(DMA, DMA_VRAM, blankTile, (tileVram + planeTile) * 32, 16, 2);
+        // test : check integrity by blanking out unused tiles
+        //uint16_t blankTile[16] = {0};
+        //DMA_transfer(DMA, DMA_VRAM, blankTile, (tileVram + planeTile) * 32, 16, 2);
     }
 }
 
