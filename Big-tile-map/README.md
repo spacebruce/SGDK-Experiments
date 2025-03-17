@@ -8,6 +8,7 @@ Uses more CPU and RAM (not VRAM) than I'm super comfy with, but does seem to do 
 -  - Approximately : 2700 + (ActiveTiles × 6) + (MapTiles * 2) Bytes
    - a 1251 tile map (1251 * 2) with 320 tiles visible (320 * 6) = 4422 bytes + 2270 = 7122B ~ 7KB of RAM
 - Currently hijacks the MAP type, and has the same 2048 maximum tile limitations as that
+- Is _not_ compatible with compressed tilesets. Must be set to NONE. :( 
 
 ## Usage
 When setting up a SGDK map, call **tileCache_init** and hook in the **tileCache_callback** 
