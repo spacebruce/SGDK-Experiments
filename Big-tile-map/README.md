@@ -4,7 +4,7 @@ A reasonably succesful attempt at shrinking VRAM usage by only allocating what's
 Uses more CPU and RAM (not VRAM) than I'm super comfy with, but does seem to do it's job well when given adequate resources.
 
 ## Limitations
-- Uses _a lot_ but not possibly not unbearable amount of memory, scales up with how many tiles exist in the map (MapTiles) and how many are visible in the view (ActiveTiles)
+- Uses _a lot_ but possibly not unbearable amount of memory, scales up with how many tiles exist in the map (MapTiles) and how many are visible in the view (ActiveTiles)
 -  - Approximately : 2700 + (ActiveTiles × 6) + (MapTiles * 2) Bytes
    - a 1251 tile map (1251 * 2) with 320 tiles visible (320 * 6) = 4422 bytes + 2270 = 7122B ~ 7KB of RAM
 - Currently hijacks the MAP type, and has the same 2048 maximum tile limitations as that
