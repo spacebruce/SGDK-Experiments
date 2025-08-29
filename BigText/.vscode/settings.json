@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "textrender.h": "c",
+        "stdint.h": "c",
+        "testr.h": "c"
+    }
+}
