@@ -15,22 +15,22 @@
         __builtin_unreachable();\
     }
 
-uint16_t ACTIVE_TILES;        // cache size (# plane slots we manage)
+uint16_t ACTIVE_TILES;        // cache size, number of VRAM slots being used
 uint16_t TOTAL_TILES;         // total tiles in the tileset
 
-uint16_t tileVramBase;        // plane tile index base (in 8x8 tiles)
-const TileSet* tileSource;    // source tileset (no compression)
+uint16_t tileVramBase;        // tile index starts here
+const TileSet* tileSource;    // source tileset 
 
 // Cache state
 uint16_t reservedTiles; 
-uint16_t* memBlock;     // POINT THIS SOMEtarget USEFUL OR MALLOC IT
+uint16_t* memBlock;     // POINT THIS at SOME target USEFUL OR MALLOC IT (preferably don't malloc it)
 uint16_t* refcnt;       // how many copies of a tile active
 uint16_t* mapToVRAM;    // base map -> offset
 uint16_t* VRAMToMap;    // offset -> map
 uint16_t* freeStack;    // Stack of remaining tile slots 
-uint16_t  freeTop;      //
+uint16_t  freeTop;      // 
 
-uint16_t planeCache[SCREEN_TILES_W * SCREEN_TILES_H]; // stores plane slot indices (or 0xFFFF)
+uint16_t planeCache[SCREEN_TILES_W * SCREEN_TILES_H]; // Truncated duplicate of VDP plane
 
 size_t memoryUsage;
 
