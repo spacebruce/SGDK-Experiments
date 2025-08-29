@@ -6,7 +6,15 @@
     "array": "c",
     "string_view": "c",
     "initializer_list": "c",
-    "maphandler.h": "c"
+    "maphandler.h": "c",
+    "kdebug.h": "c",
+    "compare": "c",
+    "cstdint": "c",
+    "tilecache.h": "c",
+    "map.h": "c",
+    "vdp_tile.h": "c",
+    "tools.h": "c",
+    "maths.h": "c"
   },
   "C_Cpp_Runner.msvcBatchPath": "",
   "C_Cpp_Runner.cCompilerPath": "gcc",
