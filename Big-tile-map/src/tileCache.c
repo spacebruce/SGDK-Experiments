@@ -96,8 +96,8 @@ inline uint16_t tileCache_claim(uint16_t tileIndex)
     // load
     const uint16_t target = (tileVramBase + planeSlot);
 
-    //if(DMA_canQueue(DMA_VRAM, 16))
-    VDP_loadTileData(&tileSource->tiles[tileIndex * 8], target, 1, CPU);
+    //if(DMA_canQueue(DMA_VRAM, 16)) 
+    VDP_loadTileData(&tileSource->tiles[tileIndex << 3], target, 1, CPU);
     //else
     //    VDP_loadTileData(&tileSource->tiles[tileIndex * 8], target, 1, CPU);
 
