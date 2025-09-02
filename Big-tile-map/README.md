@@ -5,8 +5,7 @@ Uses more CPU and RAM (not VRAM) than I'm super comfy with, but does seem to do 
 
 ## Limitations
 - Uses _a lot_ but possibly not unbearable amount of memory, scales up with how many tiles exist in the map (MapTiles) and how many are visible in the view (ActiveTiles)
--  - Approximately : 2700 + (ActiveTiles × 6) + (MapTiles * 2) Bytes
-   - a 1251 tile map (1251 * 2) with 320 tiles visible (320 * 6) = 4422 bytes + 2270 = 7122B ~ 7KB of RAM
+    - (Figuring this out right now please hold)
 - Currently hijacks the MAP type, and has the same 2048 maximum tile limitations as that
 - Is _not_ compatible with compressed tilesets. Must be set to NONE. :( 
 
@@ -16,17 +15,16 @@ When setting up a SGDK map, call **tileCache_init**, it will handle it's own ini
     bigmap = MAP_create(&mBigMap, BG_B, 0);  // Same as always, use tile 0
     vram = tileCache_init(bigmap, &tsBigMap, 300, 0);  // returns a bumped tile pointer for easy integration
 ```
-
 The rest is handled automatically! Call tileCache_free() when you're done. 
 
 ## Functions
 
-uint16_t tileCache_init(uint16_t vram, const TileSet* ts, uint16_t activeTiles);
+uint16_t tileCache_init(uint16_t vram, const TileSet* ts, uint16_t tiles, uint16_t reserved);
 - map : The relevant Map handler pointer
 - ts : The tileset being used
-- activeTiles : how tiles are being used in VRAM
-- reserve : how many tiles are static
-- Returns : vram + activeTiles
+- tiles : how tiles are being used in VRAM. Too small and maps won't work, too big and you're wasting space. 
+- reserve : how many of those tiles are static
+- Returns : vram + tiles
   
 void tileCache_free();
 - Clears out tileCache engine
