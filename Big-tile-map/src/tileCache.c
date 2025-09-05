@@ -7,7 +7,7 @@
 #endif
 #include "tileCache.h"
 
-#define SCREEN_TILES_W 42
+#define SCREEN_TILES_W 64
 #define SCREEN_TILES_H 32
 
 #define TC_ASSUME(x)\
@@ -23,12 +23,13 @@ const TileSet* tileSource;    // source tileset (no compression)
 
 // Cache state
 uint16_t reservedTiles; 
-uint16_t* memBlock;     // POINT THIS SOMEtarget USEFUL OR MALLOC IT
+uint16_t* memBlock;     // POINT THIS AT SOME target USEFUL OR MALLOC IT
 uint16_t* refcnt;       // how many copies of a tile active
 uint16_t* mapToVRAM;    // base map -> offset
 uint16_t* VRAMToMap;    // offset -> map
 uint16_t* freeStack;    // Stack of remaining tile slots 
 uint16_t  freeTop;      //
+bool mallocMode;        
 
 uint16_t planeCache[SCREEN_TILES_W * SCREEN_TILES_H]; // stores plane slot indices (or 0xFFFF)
 
@@ -57,7 +58,8 @@ inline uint16_t pop_free(void)
 
 void tileCache_free()
 {
-    MEM_free(memBlock);
+    if(mallocMode)
+        MEM_free(memBlock);
 }
 
 inline uint16_t tileCache_claim(uint16_t tileIndex)
@@ -231,7 +233,7 @@ void tileCache_callback(Map *map, uint16_t *buf, uint16_t x, uint16_t y, MapUpda
     #endif
 }
 
-uint16_t tileCache_init(const Map* map,const TileSet* ts, uint16_t maxTiles, uint16_t reserve)
+uint16_t tileCache_init(const Map* map,const TileSet* ts, uint16_t maxTiles, uint16_t reserve, uint8_t* where)
 {
     tileVramBase   = map->baseTile & TILE_INDEX_MASK;
     ACTIVE_TILES   = maxTiles;
@@ -259,7 +261,18 @@ uint16_t tileCache_init(const Map* map,const TileSet* ts, uint16_t maxTiles, uin
     const size_t map2sz  = ACTIVE_TILES * sizeof(uint16_t);
     const size_t freesz  = ACTIVE_TILES * sizeof(uint16_t);
     memoryUsage = refsz + map1sz + map2sz + freesz;
-    memBlock = (uint16_t*)MEM_alloc(memoryUsage);
+    if(where == NULL)
+    {
+        kprintf("malloc mode");
+        mallocMode = true;
+        memBlock = (uint16_t*)MEM_alloc(memoryUsage);
+    }
+    else
+    {
+        kprintf("blob mode");
+        mallocMode = false;
+        memBlock = (uint16_t*)where;
+    }
     refcnt    = &memBlock[x]; x += ACTIVE_TILES;
     mapToVRAM = &memBlock[x]; x += TOTAL_TILES;
     VRAMToMap = &memBlock[x]; x += ACTIVE_TILES;

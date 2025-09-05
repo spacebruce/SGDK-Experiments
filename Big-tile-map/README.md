@@ -21,11 +21,12 @@ The rest is handled automatically! Call tileCache_free() when you're done.
 
 ## Functions
 
-uint16_t tileCache_init(uint16_t vram, const TileSet* ts, uint16_t activeTiles);
+uint16_t tileCache_init(uint16_t vram, const TileSet* ts, uint16_t activeTiles, uint8_t* where);
 - map : The relevant Map handler pointer
 - ts : The tileset being used
 - activeTiles : how tiles are being used in VRAM
 - reserve : how many tiles are static
+- where : Where in memory (RAM) to put the buffers. Set to NULL to use a malloc (OK for demos - probably bad for a real game)
 - Returns : vram + activeTiles
   
 void tileCache_free();

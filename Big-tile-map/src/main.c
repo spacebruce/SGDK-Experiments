@@ -75,7 +75,8 @@ int main(bool resetType)
         bigmap,         // Pointer to Map
         &tsBigMap,      // Pointer to tileset
         302,            // How many tiles to allocate
-        animated_tileset_frame_0.numTile    // How many of those are static
+        animated_tileset_frame_0.numTile,    // How many of those are static
+        NULL
     );
     
     // Bonus - Init sprites like this once you've figured out the background sizes to maximise your sprite memory 
